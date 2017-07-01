@@ -12,7 +12,7 @@
 /*
 	Observacoes:
 		-1 ==> NIL
-		MAX_INT ==> infinito
+		INF ==> infinito
 */
 
 
@@ -28,6 +28,8 @@
 #include <fstream>
 #include <climits>
 using namespace std;
+
+#define INF 999999
 
 /*recebe duas matrizes n por n.
 Copia a matriz original na matriz copia*/
@@ -54,7 +56,7 @@ void copie(int n, double **original, double **copia){
 /* recebe n, a quantidade de vértices e a dimensao de w
 e w a matriz de pesos. 
 Retorna a matriz (um ponteiro para ponteiro) dos pesos do caminho da linha i para a coluna j
-A matriz W é tal que W[i][j] = 0 se i == j; W[i][j]=MAX_INT se nao existe aresta de i pra j; W[i][j]=cij se existe aresta i pra j
+A matriz W é tal que W[i][j] = 0 se i == j; W[i][j]=INF se nao existe aresta de i pra j; W[i][j]=cij se existe aresta i pra j
 A matriz PTH é a matriz de predecessores que ajudará a construir o caminho. Ja vem alocada
 */
 double **floydWarshall(int n, double **W, double **PTH){
@@ -74,7 +76,7 @@ double **floydWarshall(int n, double **W, double **PTH){
 
 	for (int i=0; i<n; i++){
 		for (int j=0; j<n; j++){
-			if (i!=j && W[i][j]<INT_MAX){
+			if (i!=j && W[i][j]<INF){
 				PTHant[i][j] = i+1;
 			} else {
 				PTHant[i][j] = -1;
@@ -135,6 +137,17 @@ void printMatriz(int n, double **W){
 	}
 }
 
+/* esta funçao recebe a dimensao da matriz e o resultado dos caminhos curtos calculados
+retorna false se nao existem ciclos negativos
+retorna true se ha ciclo negativo*/
+bool haCicloNegativo(int n, double **PATH){
+	for (int i=0; i<n; i++){
+		if (PATH[i][i]<0) return true; // existe pelo menos um ciclo negativo
+	}
+	return false;
+}
+
+
 int main(int argc, const char * argv[]){
 	// if (argc != 2) {
  //        cout << "Parameter error. Usage: " << argv[0] << " input file " << endl;
@@ -151,21 +164,31 @@ int main(int argc, const char * argv[]){
 		PTH[i]  = new double[n];
 		for(int j=0; j<n; j++){
 			if (i==j) W[i][j] =0;
-			else W[i][j] = INT_MAX;
+			else W[i][j] = INF;
 		}
 	}
-	/*O arquivo de entrada nao precisa ter os valores infitido nem ii=0 (?)*/
-	int i, j, c; // o arquivo de entrada tem valores i j entre 1 e n
-	while (arquivo>>i){
-		arquivo>>j;
-		arquivo>>c;
-		if (i<=n && i>=1 && j<=n && j>=1){
-			W[i-1][j-1] = c;
+	/*O arquivo de entrada contém um numero N seguido de uma matriz NxN*/
+	int c; 
+	for (int i=0; i<n; i++){
+		for (int j=0; j<n; j++){
+			arquivo>>c;
+			W[i][j] = c;
 		}
 	}
+	// while (arquivo>>i){
+	// 	arquivo>>j;
+	// 	arquivo>>c;
+	// 	if (i<=n && i>=1 && j<=n && j>=1){
+	// 		W[i-1][j-1] = c;
+	// 	}
+	// }
 	double **D = floydWarshall(n, W, PTH);
+	cout<<"Ha ciclo negativo? "<<haCicloNegativo(n, D)<<endl;
+	cout<<endl;
+	cout<<"Matriz de pesos dos caminhos : "<<endl;
 	printMatriz(n, D);
 	cout<<endl;
+	cout<<"Matriz de predecessores : "<<endl;
 	printMatriz(n, PTH);
 	cout<<"Caminho mais curto de de 5 pra 3 : "<<endl;
 	printCaminho(PTH, 5, 3, n);
